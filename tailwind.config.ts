@@ -47,6 +47,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Library-specific colors
+        library: {
+          wood: "hsl(var(--library-wood))",
+          gold: "hsl(var(--library-gold))",
+          paper: "hsl(var(--library-paper))",
+          ink: "hsl(var(--library-ink))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -62,6 +69,15 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      backgroundImage: {
+        'gradient-library': 'var(--gradient-library)',
+        'gradient-paper': 'var(--gradient-paper)',
+        'gradient-gold': 'var(--gradient-gold)',
+      },
+      boxShadow: {
+        'book': 'var(--shadow-book)',
+        'elegant': 'var(--shadow-elegant)',
       },
       keyframes: {
         "accordion-down": {

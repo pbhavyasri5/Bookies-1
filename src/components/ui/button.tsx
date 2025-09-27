@@ -15,6 +15,10 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Library-specific variants
+        admin: "bg-gradient-library text-primary-foreground hover:shadow-elegant transition-all duration-300",
+        gold: "bg-gradient-gold text-library-wood hover:shadow-book transition-all duration-300",
+        wood: "bg-library-wood text-library-paper hover:bg-library-wood/90 transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",
