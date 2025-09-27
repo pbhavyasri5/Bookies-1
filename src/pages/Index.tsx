@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [books, setBooks] = useState<Book[]>(sampleBooks);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<{ email: string; isAdmin: boolean } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const { toast } = useToast();
@@ -31,6 +31,30 @@ const Index = () => {
       return matchesSearch && matchesCategory;
     });
   }, [books, searchQuery, selectedCategory]);
+
+  const handleLogin = (email: string, isAdmin: boolean) => {
+    setUser({ email, isAdmin });
+    toast({
+      title: "Welcome Back!",
+      description: `Logged in as ${isAdmin ? 'Admin' : 'User'}`,
+    });
+  };
+
+  const handleSignUp = (email: string, isAdmin: boolean) => {
+    setUser({ email, isAdmin });
+    toast({
+      title: "Welcome to the Library!",
+      description: `Account created successfully as ${isAdmin ? 'Admin' : 'User'}`,
+    });
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+  };
 
   const handleAddBook = (newBook: Book) => {
     setBooks(prev => [newBook, ...prev]);
@@ -67,11 +91,15 @@ const Index = () => {
   const availableBooks = books.filter(b => b.status === 'available').length;
   const borrowedBooks = books.filter(b => b.status === 'borrowed').length;
 
+  const isAdmin = user?.isAdmin || false;
+
   return (
     <div className="min-h-screen bg-gradient-paper">
       <LibraryHeader 
-        isAdmin={isAdmin} 
-        onToggleRole={() => setIsAdmin(!isAdmin)} 
+        user={user}
+        onLogin={handleLogin}
+        onSignUp={handleSignUp}
+        onLogout={handleLogout}
       />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -130,7 +158,7 @@ const Index = () => {
               />
             </div>
             
-            {isAdmin && (
+            {isAdmin && user && (
               <AddBookForm onAddBook={handleAddBook} />
             )}
           </div>
@@ -175,7 +203,7 @@ const Index = () => {
                 : "The library is empty. Add some books to get started!"
               }
             </p>
-            {isAdmin && (
+            {isAdmin && user && (
               <AddBookForm onAddBook={handleAddBook} />
             )}
           </div>

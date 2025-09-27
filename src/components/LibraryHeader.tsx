@@ -1,13 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Library, Settings, UserCheck } from "lucide-react";
+import { Library, Settings, UserCheck, LogOut } from "lucide-react";
+import { LoginForm } from "@/components/LoginForm";
+import { SignUpForm } from "@/components/SignUpForm";
 
 interface LibraryHeaderProps {
-  isAdmin: boolean;
-  onToggleRole: () => void;
+  user: { email: string; isAdmin: boolean } | null;
+  onLogin: (email: string, isAdmin: boolean) => void;
+  onSignUp: (email: string, isAdmin: boolean) => void;
+  onLogout: () => void;
 }
 
-export function LibraryHeader({ isAdmin, onToggleRole }: LibraryHeaderProps) {
+export function LibraryHeader({ user, onLogin, onSignUp, onLogout }: LibraryHeaderProps) {
   return (
     <header className="bg-gradient-paper border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,31 +31,46 @@ export function LibraryHeader({ isAdmin, onToggleRole }: LibraryHeaderProps) {
           </div>
           
           <div className="flex items-center gap-4">
-            <Badge 
-              variant={isAdmin ? "default" : "secondary"}
-              className="text-xs font-medium"
-            >
-              {isAdmin ? (
-                <>
-                  <Settings className="h-3 w-3 mr-1" />
-                  Admin Mode
-                </>
-              ) : (
-                <>
-                  <UserCheck className="h-3 w-3 mr-1" />
-                  User Mode
-                </>
-              )}
-            </Badge>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onToggleRole}
-              className="text-xs"
-            >
-              Switch to {isAdmin ? 'User' : 'Admin'}
-            </Button>
+            {user ? (
+              <>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-foreground">
+                    {user.email}
+                  </p>
+                  <Badge 
+                    variant={user.isAdmin ? "default" : "secondary"}
+                    className="text-xs font-medium"
+                  >
+                    {user.isAdmin ? (
+                      <>
+                        <Settings className="h-3 w-3 mr-1" />
+                        Admin
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="h-3 w-3 mr-1" />
+                        User
+                      </>
+                    )}
+                  </Badge>
+                </div>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={onLogout}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <LoginForm onLogin={onLogin} />
+                <SignUpForm onSignUp={onSignUp} />
+              </div>
+            )}
           </div>
         </div>
       </div>
