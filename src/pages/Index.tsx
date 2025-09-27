@@ -100,6 +100,8 @@ const Index = () => {
         onLogin={handleLogin}
         onSignUp={handleSignUp}
         onLogout={handleLogout}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -142,16 +144,10 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Search and Filter Section */}
+        {/* Filter Section */}
         <div className="bg-card rounded-lg p-6 border border-border shadow-book mb-8">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              <div className="flex-1 max-w-md">
-                <SearchBar 
-                  value={searchQuery} 
-                  onChange={setSearchQuery}
-                />
-              </div>
               <CategoryFilter 
                 value={selectedCategory} 
                 onChange={setSelectedCategory}

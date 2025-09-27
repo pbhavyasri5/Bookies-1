@@ -3,15 +3,18 @@ import { Badge } from "@/components/ui/badge";
 import { Library, Settings, UserCheck, LogOut } from "lucide-react";
 import { LoginForm } from "@/components/LoginForm";
 import { SignUpForm } from "@/components/SignUpForm";
+import { SearchBar } from "@/components/SearchBar";
 
 interface LibraryHeaderProps {
   user: { email: string; isAdmin: boolean } | null;
   onLogin: (email: string, isAdmin: boolean) => void;
   onSignUp: (email: string, isAdmin: boolean) => void;
   onLogout: () => void;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
 }
 
-export function LibraryHeader({ user, onLogin, onSignUp, onLogout }: LibraryHeaderProps) {
+export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, onSearchChange }: LibraryHeaderProps) {
   return (
     <header className="bg-gradient-paper border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,6 +31,13 @@ export function LibraryHeader({ user, onLogin, onSignUp, onLogout }: LibraryHead
                 Community Book Management
               </p>
             </div>
+          </div>
+          
+          <div className="flex-1 max-w-md mx-8">
+            <SearchBar 
+              value={searchQuery} 
+              onChange={onSearchChange}
+            />
           </div>
           
           <div className="flex items-center gap-4">
