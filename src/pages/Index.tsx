@@ -80,12 +80,6 @@ const Index = () => {
     });
   };
 
-  const handleViewBook = (book: Book) => {
-    toast({
-      title: "Book Details",
-      description: `View details for "${book.title}" by ${book.author}.`,
-    });
-  };
 
   const totalBooks = books.length;
   const availableBooks = books.filter(b => b.status === 'available').length;
@@ -183,7 +177,7 @@ const Index = () => {
                 isAdmin={isAdmin}
                 onEdit={handleEditBook}
                 onDelete={handleDeleteBook}
-                onView={handleViewBook}
+                
               />
             ))}
           </div>

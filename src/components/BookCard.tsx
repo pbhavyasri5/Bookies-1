@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Edit, Trash2, Eye } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { Book } from "@/types/book";
 
 interface BookCardProps {
@@ -9,10 +9,10 @@ interface BookCardProps {
   isAdmin: boolean;
   onEdit?: (book: Book) => void;
   onDelete?: (book: Book) => void;
-  onView?: (book: Book) => void;
+  
 }
 
-export function BookCard({ book, isAdmin, onEdit, onDelete, onView }: BookCardProps) {
+export function BookCard({ book, isAdmin, onEdit, onDelete }: BookCardProps) {
   return (
     <Card className="group bg-card hover:shadow-book transition-all duration-300 overflow-hidden">
       <div className="aspect-[3/4] overflow-hidden">
@@ -52,38 +52,26 @@ export function BookCard({ book, isAdmin, onEdit, onDelete, onView }: BookCardPr
             </p>
           )}
           
-          <div className="flex gap-2 pt-2">
-            {isAdmin ? (
-              <>
-                <Button 
-                  size="sm" 
-                  variant="gold" 
-                  onClick={() => onEdit?.(book)}
-                  className="flex-1"
-                >
-                  <Edit className="h-3 w-3" />
-                  Edit
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="destructive" 
-                  onClick={() => onDelete?.(book)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </>
-            ) : (
+          {isAdmin && (
+            <div className="flex gap-2 pt-2">
               <Button 
                 size="sm" 
-                variant="default" 
-                onClick={() => onView?.(book)}
-                className="w-full"
+                variant="gold" 
+                onClick={() => onEdit?.(book)}
+                className="flex-1"
               >
-                <Eye className="h-3 w-3" />
-                View Details
+                <Edit className="h-3 w-3" />
+                Edit
               </Button>
-            )}
-          </div>
+              <Button 
+                size="sm" 
+                variant="destructive" 
+                onClick={() => onDelete?.(book)}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
