@@ -25,7 +25,7 @@ export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, 
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">
-                Free Library System
+                Bookies
               </h1>
               <p className="text-sm text-muted-foreground">
                 Community Book Management
