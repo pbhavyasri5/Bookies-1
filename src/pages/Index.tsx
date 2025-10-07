@@ -94,7 +94,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-paper">
+    <div className="min-h-screen bg-gradient-library">
       <LibraryHeader 
         user={user}
         onLogin={handleLogin}
@@ -108,10 +108,10 @@ const Index = () => {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-card rounded-lg p-6 border border-border shadow-book">
+          <div className="bg-card/95 backdrop-blur-sm rounded-lg p-6 border border-accent/20 shadow-elegant">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <BookOpen className="h-6 w-6 text-primary" />
+              <div className="bg-accent/20 p-3 rounded-lg">
+                <BookOpen className="h-6 w-6 text-accent" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-card-foreground">{totalBooks}</p>
@@ -120,7 +120,7 @@ const Index = () => {
             </div>
           </div>
           
-          <div className="bg-card rounded-lg p-6 border border-border shadow-book">
+          <div className="bg-card/95 backdrop-blur-sm rounded-lg p-6 border border-accent/20 shadow-elegant">
             <div className="flex items-center gap-3">
               <div className="bg-accent/20 p-3 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-accent" />
@@ -132,10 +132,10 @@ const Index = () => {
             </div>
           </div>
           
-          <div className="bg-card rounded-lg p-6 border border-border shadow-book">
+          <div className="bg-card/95 backdrop-blur-sm rounded-lg p-6 border border-accent/20 shadow-elegant">
             <div className="flex items-center gap-3">
-              <div className="bg-secondary/50 p-3 rounded-lg">
-                <Users className="h-6 w-6 text-secondary-foreground" />
+              <div className="bg-accent/20 p-3 rounded-lg">
+                <Users className="h-6 w-6 text-accent" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-card-foreground">{borrowedBooks}</p>
@@ -146,7 +146,7 @@ const Index = () => {
         </div>
 
         {/* Filter Section */}
-        <div className="bg-card rounded-lg p-6 border border-border shadow-book mb-8">
+        <div className="bg-card/95 backdrop-blur-sm rounded-lg p-6 border border-accent/20 shadow-elegant mb-8">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               <CategoryFilter 
@@ -189,7 +189,7 @@ const Index = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-card rounded-lg p-12 border border-border shadow-book text-center">
+          <div className="bg-card/95 backdrop-blur-sm rounded-lg p-12 border border-accent/20 shadow-elegant text-center">
             <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-card-foreground mb-2">
               No books found
