@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Library, Settings, UserCheck, LogOut } from "lucide-react";
+import { BookOpen, Settings, UserCheck, LogOut } from "lucide-react";
 import { LoginForm } from "@/components/LoginForm";
 import { SignUpForm } from "@/components/SignUpForm";
 import { SearchBar } from "@/components/SearchBar";
@@ -16,21 +16,14 @@ interface LibraryHeaderProps {
 
 export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, onSearchChange }: LibraryHeaderProps) {
   return (
-    <header className="bg-gradient-paper border-b border-border">
+    <header className="bg-primary border-b border-primary-foreground/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-library p-2 rounded-lg shadow-book">
-              <Library className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">
-                Bookies
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Community Book Management
-              </p>
-            </div>
+            <BookOpen className="h-8 w-8 text-accent" />
+            <h1 className="text-2xl font-bold text-primary-foreground">
+              Bookies
+            </h1>
           </div>
           
           <div className="flex-1 max-w-md mx-8">
@@ -44,7 +37,7 @@ export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, 
             {user ? (
               <>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-medium text-primary-foreground">
                     {user.email}
                   </p>
                   <Badge 
@@ -69,7 +62,7 @@ export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, 
                   variant="ghost" 
                   size="sm" 
                   onClick={onLogout}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
