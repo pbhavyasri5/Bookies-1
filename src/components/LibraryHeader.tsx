@@ -59,10 +59,10 @@ export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, 
                 </div>
                 
                 <Button 
-                  variant="ghost" 
+                  variant="default"
                   size="sm" 
                   onClick={onLogout}
-                  className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-medium"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout

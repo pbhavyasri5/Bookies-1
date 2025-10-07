@@ -94,8 +94,8 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-library">
-      <LibraryHeader 
+    <div className="min-h-screen bg-background">
+      <LibraryHeader
         user={user}
         onLogin={handleLogin}
         onSignUp={handleSignUp}
