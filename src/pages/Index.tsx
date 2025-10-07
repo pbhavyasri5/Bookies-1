@@ -4,6 +4,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { BookCard } from "@/components/BookCard";
 import { AddBookForm } from "@/components/AddBookForm";
+import { AuthPage } from "@/components/AuthPage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { sampleBooks } from "@/data/sampleBooks";
@@ -87,6 +88,11 @@ const Index = () => {
 
   const isAdmin = user?.isAdmin || false;
 
+  // Show only auth page when not logged in
+  if (!user) {
+    return <AuthPage onLogin={handleLogin} onSignUp={handleSignUp} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-paper">
       <LibraryHeader 
@@ -98,19 +104,7 @@ const Index = () => {
         onSearchChange={setSearchQuery}
       />
       
-      {!user ? (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-card rounded-lg p-12 border border-border shadow-book text-center max-w-2xl mx-auto">
-            <BookOpen className="h-20 w-20 text-primary mx-auto mb-6" />
-            <h2 className="text-3xl font-bold text-card-foreground mb-4">
-              Welcome to Bookies
-            </h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              Please sign in or create an account to access the community library and start borrowing books.
-            </p>
-          </div>
-        </main>
-      ) : (
+      {user && (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
