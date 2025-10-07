@@ -98,7 +98,20 @@ const Index = () => {
         onSearchChange={setSearchQuery}
       />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {!user ? (
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="bg-card rounded-lg p-12 border border-border shadow-book text-center max-w-2xl mx-auto">
+            <BookOpen className="h-20 w-20 text-primary mx-auto mb-6" />
+            <h2 className="text-3xl font-bold text-card-foreground mb-4">
+              Welcome to Bookies
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              Please sign in or create an account to access the community library and start borrowing books.
+            </p>
+          </div>
+        </main>
+      ) : (
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-card rounded-lg p-6 border border-border shadow-book">
@@ -198,7 +211,8 @@ const Index = () => {
             )}
           </div>
         )}
-      </main>
+        </main>
+      )}
     </div>
   );
 };
