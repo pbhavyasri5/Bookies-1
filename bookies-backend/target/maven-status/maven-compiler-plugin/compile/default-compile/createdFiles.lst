@@ -1,0 +1,15 @@
+com\bookies\config\SecurityConfig.class
+com\bookies\config\WebConfig.class
+com\bookies\controller\FileUploadController.class
+com\bookies\model\Book.class
+com\bookies\controller\AuthController.class
+com\bookies\model\Member.class
+com\bookies\repository\UserRepository.class
+com\bookies\controller\MemberController.class
+com\bookies\repository\MemberRepository.class
+com\bookies\controller\BookController.class
+com\bookies\model\User.class
+com\bookies\repository\BookRepository.class
+com\bookies\BookiesBackendApplication$1.class
+com\bookies\BookiesBackendApplication.class
+com\bookies\security\JwtAuthenticationFilter.class
