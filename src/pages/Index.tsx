@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { LibraryHeader } from "@/components/LibraryHeader";
 import { SearchBar } from "@/components/SearchBar";
-import { CategoryFilter } from "@/components/CategoryFilter";
+import { SidebarNav } from "@/components/SidebarNav";
 import { BookCard } from "@/components/BookCard";
 import { AddBookForm } from "@/components/AddBookForm";
 import { AuthPage } from "@/components/AuthPage";
@@ -65,10 +65,13 @@ const Index = () => {
     });
   };
 
-  const handleEditBook = (book: Book) => {
+  const handleEditBook = (updatedBook: Book) => {
+    setBooks(prev => prev.map(book => 
+      book.id === updatedBook.id ? updatedBook : book
+    ));
     toast({
-      title: "Edit Book",
-      description: `Edit functionality for "${book.title}" would open here.`,
+      title: "Book Updated",
+      description: `"${updatedBook.title}" has been updated successfully.`,
     });
   };
 
@@ -81,12 +84,135 @@ const Index = () => {
     });
   };
 
+  const handleImageUpload = async (book: Book, file: File) => {
+    try {
+      // TODO: Implement actual image upload to backend
+      // For now, create a local URL for demo
+      const imageUrl = URL.createObjectURL(file);
+      setBooks(prev => prev.map(b => 
+        b.id === book.id ? { ...b, coverImage: imageUrl } : b
+      ));
+      toast({
+        title: "Image Updated",
+        description: `Cover image for "${book.title}" has been updated.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRequestBook = (book: Book) => {
+    if (!user) return;
+    
+    // Update book status to pending request
+    setBooks(prev => prev.map(b => 
+      b.id === book.id ? {
+        ...b,
+        status: 'pending_request',
+        requestedBy: user.email,
+        requestDate: new Date().toISOString(),
+        approvalStatus: 'pending'
+      } : b
+    ));
+
+    toast({
+      title: "Request Submitted",
+      description: `Your request for "${book.title}" is pending admin approval.`,
+    });
+  };
+
+  const handleReturnBook = (book: Book) => {
+    if (!user) return;
+    
+    // Update book status to pending return
+    setBooks(prev => prev.map(b => 
+      b.id === book.id ? {
+        ...b,
+        status: 'pending_return',
+        returnRequestDate: new Date().toISOString(),
+        approvalStatus: 'pending'
+      } : b
+    ));
+
+    toast({
+      title: "Return Requested",
+      description: `Your return request for "${book.title}" is pending admin approval.`,
+    });
+  };
+
+  const handleApproveRequest = (book: Book, approve: boolean) => {
+    const borrowDate = new Date();
+    // Ensure year is 2025
+    if (borrowDate.getFullYear() < 2025) {
+      borrowDate.setFullYear(2025);
+    }
+
+    setBooks(prev => prev.map(b => 
+      b.id === book.id ? {
+        ...b,
+        status: approve ? 'borrowed' : 'available',
+        borrowedBy: approve ? book.requestedBy : undefined,
+        borrowedDate: approve ? borrowDate.toISOString() : undefined,
+        requestedBy: undefined,
+        requestDate: undefined,
+        approvalStatus: undefined
+      } : b
+    ));
+
+    toast({
+      title: approve ? "Request Approved" : "Request Rejected",
+      description: `The request for "${book.title}" has been ${approve ? 'approved' : 'rejected'}.`,
+      variant: approve ? "default" : "destructive",
+    });
+  };
+
+  const handleApproveReturn = (book: Book, approve: boolean) => {
+    if (!approve) {
+      // Reject return - keep book as borrowed
+      setBooks(prev => prev.map(b => 
+        b.id === book.id ? {
+          ...b,
+          status: 'borrowed',
+          returnRequestDate: undefined,
+          approvalStatus: undefined
+        } : b
+      ));
+
+      toast({
+        title: "Return Rejected",
+        description: `The return request for "${book.title}" has been rejected. Please check the book condition.`,
+        variant: "destructive",
+      });
+    } else {
+      // Approve return - make book available again
+      setBooks(prev => prev.map(b => 
+        b.id === book.id ? {
+          ...b,
+          status: 'available',
+          borrowedBy: undefined,
+          borrowedDate: undefined,
+          returnRequestDate: undefined,
+          approvalStatus: undefined
+        } : b
+      ));
+
+      toast({
+        title: "Return Approved",
+        description: `"${book.title}" has been successfully returned to the library.`,
+      });
+    }
+  };
+
 
   const totalBooks = books.length;
   const availableBooks = books.filter(b => b.status === 'available').length;
   const borrowedBooks = books.filter(b => b.status === 'borrowed').length;
 
-  const isAdmin = user?.isAdmin || false;
+
 
   // Show only auth page when not logged in
   if (!user) {
@@ -104,9 +230,22 @@ const Index = () => {
         onSearchChange={setSearchQuery}
       />
       
-      {user && (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Section */}
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-64 min-h-screen border-r border-accent/20">
+          <SidebarNav
+            isAdmin={user.isAdmin}
+            userEmail={user.email}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            books={books}
+            onUpdateBook={handleEditBook}
+          />
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 px-6 py-8">
+          {/* Stats Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-card/95 backdrop-blur-sm rounded-lg p-6 border border-accent/20 shadow-elegant">
             <div className="flex items-center gap-3">
@@ -145,68 +284,51 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Filter Section */}
-        <div className="bg-card/95 backdrop-blur-sm rounded-lg p-6 border border-accent/20 shadow-elegant mb-8">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              <CategoryFilter 
-                value={selectedCategory} 
-                onChange={setSelectedCategory}
-              />
-            </div>
-            
-            {isAdmin && user && (
+          {/* Add Book Button (Admin Only) */}
+          {user.isAdmin && (
+            <div className="mb-6">
               <AddBookForm onAddBook={handleAddBook} />
-            )}
-          </div>
-          
-          {filteredBooks.length > 0 && (
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                Showing {filteredBooks.length} of {totalBooks} books
-              </span>
-              {selectedCategory !== "All Categories" && (
-                <Badge variant="outline" className="text-xs">
-                  {selectedCategory}
-                </Badge>
+            </div>
+          )}
+
+          {/* Books Grid */}
+          {filteredBooks.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredBooks.map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  isAdmin={user.isAdmin}
+                  currentUser={user}
+                  onEdit={handleEditBook}
+                  onDelete={handleDeleteBook}
+                  onImageUpload={handleImageUpload}
+                  onRequestBook={handleRequestBook}
+                  onReturnBook={handleReturnBook}
+                  onApproveRequest={handleApproveRequest}
+                  onApproveReturn={handleApproveReturn}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-card/95 backdrop-blur-sm rounded-lg p-12 border border-accent/20 shadow-elegant text-center">
+              <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-card-foreground mb-2">
+                No books found
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {searchQuery || selectedCategory !== "All Categories" 
+                  ? "Try adjusting your search or filter criteria."
+                  : "The library is empty. Add some books to get started!"
+                }
+              </p>
+              {user.isAdmin && (
+                <AddBookForm onAddBook={handleAddBook} />
               )}
             </div>
           )}
-        </div>
-
-        {/* Books Grid */}
-        {filteredBooks.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                isAdmin={isAdmin}
-                onEdit={handleEditBook}
-                onDelete={handleDeleteBook}
-                
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-card/95 backdrop-blur-sm rounded-lg p-12 border border-accent/20 shadow-elegant text-center">
-            <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-card-foreground mb-2">
-              No books found
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery || selectedCategory !== "All Categories" 
-                ? "Try adjusting your search or filter criteria."
-                : "The library is empty. Add some books to get started!"
-              }
-            </p>
-            {isAdmin && user && (
-              <AddBookForm onAddBook={handleAddBook} />
-            )}
-          </div>
-        )}
         </main>
-      )}
+      </div>
     </div>
   );
 };

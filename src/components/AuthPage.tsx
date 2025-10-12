@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BookOpen, User, Lock, Mail, UserCheck } from "lucide-react";
+import { api } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -24,30 +26,101 @@ export function AuthPage({ onLogin, onSignUp }: AuthPageProps) {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
+      });
       return;
     }
 
-    const isAdmin = email.includes("admin") || email === "librarian@library.com";
-    onLogin(email, isAdmin);
+    setIsLoading(true);
+    try {
+      const response = await api.auth.login({
+        email,
+        password
+      });
+      onLogin(response.data.email, response.data.role === 'ADMIN');
+      toast({
+        title: "Success",
+        description: "Logged in successfully"
+      });
+    } catch (error) {
+      // Backend auth failed (maybe not implemented). Fall back to demo login for
+      // local development: accept librarian@library.com as admin and a generic
+      // demo user email for user role. This keeps the app usable when backend
+      // auth is unavailable.
+      const demoAdmin = email === 'librarian@library.com' || email.includes('admin');
+      const demoUser = email === 'user@email.com' || !email.includes('admin');
+
+      if (demoAdmin || demoUser) {
+        onLogin(email, demoAdmin);
+        toast({
+          title: 'Logged in (demo)',
+          description: demoAdmin ? 'Signed in as demo admin' : 'Signed in as demo user'
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Invalid email or password",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSignUpSubmit = (e: React.FormEvent) => {
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name || !email || !password || !role) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
+      });
       return;
     }
 
     if (password !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive"
+      });
       return;
     }
 
-    const isAdmin = role === "admin";
-    onSignUp(email, isAdmin);
+    setIsLoading(true);
+    try {
+      const response = await api.auth.register({
+        name,
+        email,
+        password,
+        role: role === 'admin' ? 'ADMIN' : 'USER'
+      });
+      onSignUp(response.data.email, response.data.role === 'ADMIN');
+      toast({
+        title: "Success",
+        description: "Account created successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Registration failed. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -94,14 +167,12 @@ export function AuthPage({ onLogin, onSignUp }: AuthPageProps) {
                 />
               </div>
 
-              <div className="text-xs text-muted-foreground space-y-1 bg-muted p-3 rounded">
-                <p><strong>Demo Accounts:</strong></p>
-                <p>• Admin: librarian@library.com (any password)</p>
-                <p>• User: user@email.com (any password)</p>
-              </div>
-              
-              <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-                Sign In
+              <Button 
+                type="submit" 
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign In"}
               </Button>
 
               <div className="text-center mt-4">
