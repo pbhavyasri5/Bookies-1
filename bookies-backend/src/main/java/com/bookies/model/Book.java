@@ -29,6 +29,12 @@ public class Book {
     
     private String publisher;
     private String description;
+    
+    @Column(name = "price")
+    private Double price;
+    
+    @Column(name = "published_date")
+    private String publishedDate;
 
     @Column(name = "cover_image")
     private String coverImage;
@@ -116,4 +122,10 @@ public class Book {
 
     public String getAddedDate() { return addedDate; }
     public void setAddedDate(String addedDate) { this.addedDate = addedDate; }
+
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
+
+    public String getPublishedDate() { return publishedDate; }
+    public void setPublishedDate(String publishedDate) { this.publishedDate = publishedDate; }
 }

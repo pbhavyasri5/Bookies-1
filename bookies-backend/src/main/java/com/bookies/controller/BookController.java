@@ -53,6 +53,9 @@ public class BookController {
                 book.setCategory(bookDetails.getCategory());
                 book.setPublisher(bookDetails.getPublisher());
                 book.setDescription(bookDetails.getDescription());
+                if (bookDetails.getPublishedDate() != null) {
+                    book.setPublishedDate(bookDetails.getPublishedDate());
+                }
                 if (bookDetails.getCoverImage() != null) {
                     book.setCoverImage(bookDetails.getCoverImage());
                 }
