@@ -11,7 +11,7 @@ interface BookFormProps {
   isAdmin: boolean;
   onBookAdded: () => void;
   editingBook?: {
-    id: string;
+    id: number;
     title: string;
     author: string;
     isbn?: string;

@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Settings, UserCheck, LogOut, Key } from "lucide-react";
+import { BookOpen, Settings, UserCheck, LogOut } from "lucide-react";
 import { LoginForm } from "@/components/LoginForm";
 import { SignUpForm } from "@/components/SignUpForm";
 import { SearchBar } from "@/components/SearchBar";
 import { ChangePasswordForm } from "@/components/ChangePasswordForm";
-import { useState } from "react";
 
 interface LibraryHeaderProps {
   user: { email: string; isAdmin: boolean } | null;
@@ -17,7 +16,6 @@ interface LibraryHeaderProps {
 }
 
 export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, onSearchChange }: LibraryHeaderProps) {
-  const [openChangePwd, setOpenChangePwd] = useState(false);
   return (
     <header className="bg-primary border-b border-primary-foreground/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,15 +60,7 @@ export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, 
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setOpenChangePwd(true)}
-                  >
-                    <Key className="h-4 w-4 mr-2" />
-                    Change Password
-                  </Button>
-
+                  <ChangePasswordForm userEmail={user.email} />
                   <Button 
                     variant="default"
                     size="sm" 
@@ -81,12 +71,6 @@ export function LibraryHeader({ user, onLogin, onSignUp, onLogout, searchQuery, 
                     Logout
                   </Button>
                 </div>
-                
-                <ChangePasswordForm
-                  open={openChangePwd}
-                  onClose={() => setOpenChangePwd(false)}
-                  email={user.email}
-                />
               </>
             ) : (
               <div className="flex items-center gap-2">

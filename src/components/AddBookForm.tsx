@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { BookFormData, Book } from "@/types/book";
+import { api } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddBookFormProps {
   onAddBook: (book: Book) => void;
@@ -40,6 +42,8 @@ const categories = [
 
 export function AddBookForm({ onAddBook }: AddBookFormProps) {
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState<BookFormData>({
     title: "",
     author: "",
@@ -49,31 +53,59 @@ export function AddBookForm({ onAddBook }: AddBookFormProps) {
     description: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title || !formData.author || !formData.category) {
+      toast({
+        title: "Validation Error",
+        description: "Title, Author, and Category are required.",
+        variant: "destructive",
+      });
       return;
     }
 
-    const newBook: Book = {
-      id: crypto.randomUUID(),
-      ...formData,
-      status: 'available',
-      coverImage: '/placeholder.svg', // Will be replaced with proper cover
-      addedDate: new Date().toISOString(),
-    };
+    setIsSubmitting(true);
 
-    onAddBook(newBook);
-    setFormData({
-      title: "",
-      author: "",
-      category: "",
-      isbn: "",
-      publisher: "",
-      description: "",
-    });
-    setOpen(false);
+    try {
+      // Create book via backend API
+      const response = await api.books.create({
+        title: formData.title.trim(),
+        author: formData.author.trim(),
+        category: formData.category,
+        isbn: formData.isbn?.trim() || "",
+        publisher: formData.publisher?.trim() || "",
+        description: formData.description?.trim() || "",
+      });
+
+      // No need to convert ID - already a number
+      onAddBook(response.data);
+      
+      toast({
+        title: "Success",
+        description: `"${formData.title}" has been added to the library.`,
+      });
+
+      // Reset form
+      setFormData({
+        title: "",
+        author: "",
+        category: "",
+        isbn: "",
+        publisher: "",
+        description: "",
+      });
+      setOpen(false);
+    } catch (error: any) {
+      console.error("Failed to add book:", error);
+      toast({
+        title: "Failed to Add Book",
+        description: error.response?.data?.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -161,10 +193,10 @@ export function AddBookForm({ onAddBook }: AddBookFormProps) {
           </div>
           
           <div className="flex gap-2 pt-4">
-            <Button type="submit" variant="admin" className="flex-1">
-              Add Book
+            <Button type="submit" variant="admin" className="flex-1" disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Book"}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
               Cancel
             </Button>
           </div>

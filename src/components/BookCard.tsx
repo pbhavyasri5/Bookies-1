@@ -74,25 +74,28 @@ export function BookCard({
           alt={`Cover of ${book.title}`}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        <div className="absolute bottom-2 right-2">
-          <Input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            id={`image-upload-${book.id}`}
-            onChange={handleImageUpload}
-          />
-          <Button
-            size="sm"
-            variant="secondary"
-            className="bg-white hover:bg-gray-100"
-            disabled={isImageUploading}
-            onClick={() => document.getElementById(`image-upload-${book.id}`)?.click()}
-          >
-            <ImageIcon className="h-3 w-3 mr-1 text-blue-600" />
-            {isImageUploading ? 'Uploading...' : 'Change Image'}
-          </Button>
-        </div>
+        {/* Change Image button - Admin Only */}
+        {isAdmin && (
+          <div className="absolute bottom-2 right-2">
+            <Input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              id={`image-upload-${book.id}`}
+              onChange={handleImageUpload}
+            />
+            <Button
+              size="sm"
+              variant="secondary"
+              className="bg-white hover:bg-gray-100"
+              disabled={isImageUploading}
+              onClick={() => document.getElementById(`image-upload-${book.id}`)?.click()}
+            >
+              <ImageIcon className="h-3 w-3 mr-1 text-blue-600" />
+              {isImageUploading ? 'Uploading...' : 'Change Image'}
+            </Button>
+          </div>
+        )}
       </div>
       
       <CardContent className="p-4">

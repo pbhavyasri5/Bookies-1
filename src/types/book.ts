@@ -1,10 +1,11 @@
 export interface Book {
-  id: string;
+  id: number;  // Changed from string to number to match backend
   title: string;
   author: string;
   category: string;
   isbn?: string;
   publisher?: string;
+  publishedDate?: string;
   status: 'available' | 'borrowed' | 'pending_request' | 'pending_return';
   coverImage: string;
   description?: string;
@@ -23,5 +24,7 @@ export interface BookFormData {
   category: string;
   isbn?: string;
   publisher?: string;
+  publishedDate?: string;
   description?: string;
+  status?: string;
 }

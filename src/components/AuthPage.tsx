@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookOpen, User, Lock, Mail, UserCheck } from "lucide-react";
+import { BookOpen, User, Lock, Mail, UserCheck, Eye, EyeOff } from "lucide-react";
 import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -25,6 +25,10 @@ export function AuthPage({ onLogin, onSignUp }: AuthPageProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
+
+  // Password visibility toggles
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -52,27 +56,28 @@ export function AuthPage({ onLogin, onSignUp }: AuthPageProps) {
         title: "Success",
         description: "Logged in successfully"
       });
-    } catch (error) {
-      // Backend auth failed (maybe not implemented). Fall back to demo login for
-      // local development: accept librarian@library.com as admin and a generic
-      // demo user email for user role. This keeps the app usable when backend
-      // auth is unavailable.
-      const demoAdmin = email === 'librarian@library.com' || email.includes('admin');
-      const demoUser = email === 'user@email.com' || !email.includes('admin');
-
-      if (demoAdmin || demoUser) {
-        onLogin(email, demoAdmin);
-        toast({
-          title: 'Logged in (demo)',
-          description: demoAdmin ? 'Signed in as demo admin' : 'Signed in as demo user'
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Invalid email or password",
-          variant: "destructive"
-        });
+    } catch (error: unknown) {
+      console.error('Login error:', error);
+      
+      let errorMessage = "Invalid email or password";
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { message?: string } }; code?: string };
+        
+        if (axiosError.response?.status === 401) {
+          errorMessage = "Invalid email or password";
+        } else if (axiosError.code === 'ERR_NETWORK' || !axiosError.response) {
+          errorMessage = "Unable to connect to server. Please check if the backend is running.";
+        } else if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
       }
+      
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -157,14 +162,29 @@ export function AuthPage({ onLogin, onSignUp }: AuthPageProps) {
               
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <Button 
@@ -213,26 +233,56 @@ export function AuthPage({ onLogin, onSignUp }: AuthPageProps) {
               
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Password</Label>
-                <Input
-                  id="signup-password"
-                  type="password"
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="signup-password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">

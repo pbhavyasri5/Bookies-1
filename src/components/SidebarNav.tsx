@@ -9,15 +9,16 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ManageBooks } from './ManageBooks';
 import { MyBooks } from './MyBooks';
-import { ChangePasswordForm } from './ChangePasswordForm';
+import { Book } from '@/types/book';
 
 interface SidebarNavProps {
   isAdmin: boolean;
   userEmail: string;
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
-  books: any[];
-  onUpdateBook?: (book: any) => void;
+  books: Book[];
+  onUpdateBook?: (book: Book) => void;
+  onReturnBook?: (book: Book) => void;
 }
 
 const categories = [
@@ -41,7 +42,8 @@ export function SidebarNav({
   selectedCategory, 
   onCategoryChange,
   books,
-  onUpdateBook 
+  onUpdateBook,
+  onReturnBook 
 }: SidebarNavProps) {
   return (
     <ScrollArea className="h-screen py-6 pl-8 pr-6">
@@ -63,20 +65,6 @@ export function SidebarNav({
         </div>
 
         <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="account">
-            <AccordionTrigger>Account Settings</AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-4 py-2">
-                <ChangePasswordForm
-                  email={userEmail}
-                  onSuccess={() => {
-                    // You can add success handling here
-                  }}
-                />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
           {isAdmin ? (
             <AccordionItem value="manage">
               <AccordionTrigger>Manage Books</AccordionTrigger>
@@ -91,7 +79,11 @@ export function SidebarNav({
             <AccordionItem value="mybooks">
               <AccordionTrigger>My Books</AccordionTrigger>
               <AccordionContent>
-                <MyBooks userEmail={userEmail} />
+                <MyBooks 
+                  userEmail={userEmail} 
+                  books={books}
+                  onReturnBook={onReturnBook}
+                />
               </AccordionContent>
             </AccordionItem>
           )}

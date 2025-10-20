@@ -1,23 +1,93 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { LibraryHeader } from "@/components/LibraryHeader";
 import { SearchBar } from "@/components/SearchBar";
 import { SidebarNav } from "@/components/SidebarNav";
 import { BookCard } from "@/components/BookCard";
 import { AddBookForm } from "@/components/AddBookForm";
+import { EditBookForm } from "@/components/EditBookForm";
 import { AuthPage } from "@/components/AuthPage";
+import { AdminDashboard } from "@/components/AdminDashboard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { sampleBooks } from "@/data/sampleBooks";
 import { Book } from "@/types/book";
 import { BookOpen, Users, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/services/api";
+import bookRequestService, { BookRequestResponse } from "@/services/bookRequestService";
 
 const Index = () => {
-  const [books, setBooks] = useState<Book[]>(sampleBooks);
+  const [books, setBooks] = useState<Book[]>([]);
   const [user, setUser] = useState<{ email: string; isAdmin: boolean } | null>(null);
+  const [pendingRequests, setPendingRequests] = useState<BookRequestResponse[]>([]);
+  const [bookRequestMap, setBookRequestMap] = useState<Map<number, number>>(new Map());  // Changed to number keys
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [isLoadingBooks, setIsLoadingBooks] = useState(true);
   const { toast } = useToast();
+
+  const loadBooks = async () => {
+    try {
+      setIsLoadingBooks(true);
+      const response = await api.books.getAll();
+      
+      // IDs are already numbers from backend - no conversion needed
+      setBooks(response.data);
+      console.log(`✅ Successfully loaded ${response.data.length} books from backend`);
+      
+      // Only show info if database is empty (not an error)
+      if (response.data.length === 0) {
+        console.info("ℹ️ Database is empty. Add books using the 'Add Book' button.");
+      }
+    } catch (error) {
+      console.error("❌ Failed to load books from backend:", error);
+      
+      // Only use sample books if backend is completely unreachable
+      // Don't show popup - just log the error
+      setBooks([]);
+      
+      // Optional: Show a more subtle notification
+      toast({
+        title: "Connection Issue",
+        description: "Unable to connect to backend. Please check if the server is running.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingBooks(false);
+    }
+  };
+
+  // Load pending requests for admin
+  const loadPendingRequests = async () => {
+    if (!user?.isAdmin) return;
+    
+    try {
+      const requests = await bookRequestService.getPendingRequests();
+      setPendingRequests(requests);
+      
+      // Create a map of bookId to requestId for quick lookup
+      const requestMap = new Map<number, number>();  // Changed to number keys
+      requests.forEach(req => {
+        requestMap.set(req.bookId, req.id);  // No toString() needed
+      });
+      setBookRequestMap(requestMap);
+      
+      console.log(`✅ Loaded ${requests.length} pending requests`);
+    } catch (error) {
+      console.error("Failed to load pending requests:", error);
+    }
+  };
+
+  // Load books from backend when user logs in
+  useEffect(() => {
+    if (user) {
+      loadBooks();
+      if (user.isAdmin) {
+        loadPendingRequests();
+      }
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredBooks = useMemo(() => {
     return books.filter(book => {
@@ -65,14 +135,18 @@ const Index = () => {
     });
   };
 
+  const handleEditClick = (book: Book) => {
+    setEditingBook(book);
+  };
+
   const handleEditBook = (updatedBook: Book) => {
+    // No need for ID conversion - already a number
     setBooks(prev => prev.map(book => 
       book.id === updatedBook.id ? updatedBook : book
     ));
-    toast({
-      title: "Book Updated",
-      description: `"${updatedBook.title}" has been updated successfully.`,
-    });
+    setEditingBook(null);
+    
+    console.log(`✅ Book updated successfully: ${updatedBook.title}`);
   };
 
   const handleDeleteBook = (book: Book) => {
@@ -85,6 +159,16 @@ const Index = () => {
   };
 
   const handleImageUpload = async (book: Book, file: File) => {
+    // Only allow admins to upload images
+    if (!user?.isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only admins can change book images.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // TODO: Implement actual image upload to backend
       // For now, create a local URL for demo
@@ -105,104 +189,233 @@ const Index = () => {
     }
   };
 
-  const handleRequestBook = (book: Book) => {
+  const handleRequestBook = async (book: Book) => {
     if (!user) return;
     
-    // Update book status to pending request
-    setBooks(prev => prev.map(b => 
-      b.id === book.id ? {
-        ...b,
-        status: 'pending_request',
-        requestedBy: user.email,
-        requestDate: new Date().toISOString(),
-        approvalStatus: 'pending'
-      } : b
-    ));
+    try {
+      // Create request in backend
+      await bookRequestService.createRequest({
+        bookId: book.id,  // No need for parseInt - id is already a number
+        userEmail: user.email,
+        requestType: 'BORROW',
+      });
 
-    toast({
-      title: "Request Submitted",
-      description: `Your request for "${book.title}" is pending admin approval.`,
-    });
-  };
-
-  const handleReturnBook = (book: Book) => {
-    if (!user) return;
-    
-    // Update book status to pending return
-    setBooks(prev => prev.map(b => 
-      b.id === book.id ? {
-        ...b,
-        status: 'pending_return',
-        returnRequestDate: new Date().toISOString(),
-        approvalStatus: 'pending'
-      } : b
-    ));
-
-    toast({
-      title: "Return Requested",
-      description: `Your return request for "${book.title}" is pending admin approval.`,
-    });
-  };
-
-  const handleApproveRequest = (book: Book, approve: boolean) => {
-    const borrowDate = new Date();
-    // Ensure year is 2025
-    if (borrowDate.getFullYear() < 2025) {
-      borrowDate.setFullYear(2025);
-    }
-
-    setBooks(prev => prev.map(b => 
-      b.id === book.id ? {
-        ...b,
-        status: approve ? 'borrowed' : 'available',
-        borrowedBy: approve ? book.requestedBy : undefined,
-        borrowedDate: approve ? borrowDate.toISOString() : undefined,
-        requestedBy: undefined,
-        requestDate: undefined,
-        approvalStatus: undefined
-      } : b
-    ));
-
-    toast({
-      title: approve ? "Request Approved" : "Request Rejected",
-      description: `The request for "${book.title}" has been ${approve ? 'approved' : 'rejected'}.`,
-      variant: approve ? "default" : "destructive",
-    });
-  };
-
-  const handleApproveReturn = (book: Book, approve: boolean) => {
-    if (!approve) {
-      // Reject return - keep book as borrowed
+      // Update book status to pending request locally
       setBooks(prev => prev.map(b => 
         b.id === book.id ? {
           ...b,
-          status: 'borrowed',
-          returnRequestDate: undefined,
-          approvalStatus: undefined
+          status: 'pending_request',
+          requestedBy: user.email,
+          requestDate: new Date().toISOString(),
+          approvalStatus: 'pending'
         } : b
       ));
 
       toast({
-        title: "Return Rejected",
-        description: `The return request for "${book.title}" has been rejected. Please check the book condition.`,
+        title: "Request Submitted",
+        description: `Your request for "${book.title}" is pending admin approval.`,
+      });
+      
+      // Refresh pending requests if admin
+      if (user.isAdmin) {
+        await loadPendingRequests();
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit request";
+      toast({
+        title: "Request Failed",
+        description: errorMessage,
         variant: "destructive",
       });
-    } else {
-      // Approve return - make book available again
+    }
+  };
+
+  const handleReturnBook = async (book: Book) => {
+    if (!user) return;
+    
+    try {
+      // Create return request in backend
+      await bookRequestService.createRequest({
+        bookId: book.id,  // No need for parseInt - id is already a number
+        userEmail: user.email,
+        requestType: 'RETURN',
+      });
+
+      // Update book status to pending return locally
       setBooks(prev => prev.map(b => 
         b.id === book.id ? {
           ...b,
-          status: 'available',
-          borrowedBy: undefined,
-          borrowedDate: undefined,
-          returnRequestDate: undefined,
-          approvalStatus: undefined
+          status: 'pending_return',
+          returnRequestDate: new Date().toISOString(),
+          approvalStatus: 'pending'
         } : b
       ));
 
       toast({
-        title: "Return Approved",
-        description: `"${book.title}" has been successfully returned to the library.`,
+        title: "Return Requested",
+        description: `Your return request for "${book.title}" is pending admin approval.`,
+      });
+      
+      // Refresh pending requests if admin
+      if (user.isAdmin) {
+        await loadPendingRequests();
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit return request";
+      toast({
+        title: "Return Request Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleApproveRequest = async (book: Book, approve: boolean) => {
+    if (!user?.isAdmin) return;
+    
+    // Get the request ID for this book
+    const requestId = bookRequestMap.get(book.id);
+    if (!requestId) {
+      toast({
+        title: "Error",
+        description: "Request ID not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (approve) {
+        // Call backend approve endpoint
+        const response = await bookRequestService.approveRequest(requestId, user.email);
+        
+        // Update local state with backend response
+        if (response.book) {
+          setBooks(prev => prev.map(b => 
+            b.id === book.id ? {
+              ...b,
+              status: response.book.status as 'available' | 'borrowed' | 'pending_request' | 'pending_return',
+              borrowedBy: response.book.borrowedBy,
+              borrowedDate: response.book.borrowedDate,
+              requestedBy: undefined,
+              requestDate: undefined,
+              approvalStatus: undefined
+            } : b
+          ));
+        }
+
+        toast({
+          title: "Request Approved",
+          description: `The request for "${book.title}" has been approved.`,
+        });
+      } else {
+        // Call backend reject endpoint
+        await bookRequestService.rejectRequest(requestId, user.email, "Request rejected by admin");
+        
+        // Update local state
+        setBooks(prev => prev.map(b => 
+          b.id === book.id ? {
+            ...b,
+            status: 'available',
+            requestedBy: undefined,
+            requestDate: undefined,
+            approvalStatus: undefined
+          } : b
+        ));
+
+        toast({
+          title: "Request Rejected",
+          description: `The request for "${book.title}" has been rejected.`,
+          variant: "destructive",
+        });
+      }
+
+      // Refresh books and pending requests from backend
+      await Promise.all([
+        loadBooks(),
+        loadPendingRequests()
+      ]);
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to process request";
+      toast({
+        title: approve ? "Approval Failed" : "Rejection Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleApproveReturn = async (book: Book, approve: boolean) => {
+    if (!user?.isAdmin) return;
+    
+    // Get the request ID for this book
+    const requestId = bookRequestMap.get(book.id);
+    if (!requestId) {
+      toast({
+        title: "Error",
+        description: "Request ID not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (approve) {
+        // Call backend approve endpoint
+        const response = await bookRequestService.approveRequest(requestId, user.email);
+        
+        // Update local state with backend response
+        if (response.book) {
+          setBooks(prev => prev.map(b => 
+            b.id === book.id ? {
+              ...b,
+              status: response.book.status as 'available' | 'borrowed' | 'pending_request' | 'pending_return',
+              borrowedBy: response.book.borrowedBy,
+              borrowedDate: response.book.borrowedDate,
+              returnRequestDate: undefined,
+              approvalStatus: undefined
+            } : b
+          ));
+        }
+
+        toast({
+          title: "Return Approved",
+          description: `"${book.title}" has been successfully returned to the library.`,
+        });
+      } else {
+        // Call backend reject endpoint
+        await bookRequestService.rejectRequest(requestId, user.email, "Return rejected - please check book condition");
+        
+        // Update local state - keep book as borrowed
+        setBooks(prev => prev.map(b => 
+          b.id === book.id ? {
+            ...b,
+            status: 'borrowed',
+            returnRequestDate: undefined,
+            approvalStatus: undefined
+          } : b
+        ));
+
+        toast({
+          title: "Return Rejected",
+          description: `The return request for "${book.title}" has been rejected. Please check the book condition.`,
+          variant: "destructive",
+        });
+      }
+
+      // Refresh books and pending requests from backend
+      await Promise.all([
+        loadBooks(),
+        loadPendingRequests()
+      ]);
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to process return request";
+      toast({
+        title: approve ? "Approval Failed" : "Rejection Failed",
+        description: errorMessage,
+        variant: "destructive",
       });
     }
   };
@@ -240,6 +453,7 @@ const Index = () => {
             onCategoryChange={setSelectedCategory}
             books={books}
             onUpdateBook={handleEditBook}
+            onReturnBook={handleReturnBook}
           />
         </aside>
 
@@ -284,6 +498,16 @@ const Index = () => {
           </div>
         </div>
 
+          {/* Admin Dashboard - Pending Requests */}
+          {user.isAdmin && (
+            <div className="mb-8">
+              <AdminDashboard 
+                userEmail={user.email} 
+                onRequestProcessed={loadBooks}
+              />
+            </div>
+          )}
+
           {/* Add Book Button (Admin Only) */}
           {user.isAdmin && (
             <div className="mb-6">
@@ -300,7 +524,7 @@ const Index = () => {
                   book={book}
                   isAdmin={user.isAdmin}
                   currentUser={user}
-                  onEdit={handleEditBook}
+                  onEdit={handleEditClick}
                   onDelete={handleDeleteBook}
                   onImageUpload={handleImageUpload}
                   onRequestBook={handleRequestBook}
@@ -329,6 +553,14 @@ const Index = () => {
           )}
         </main>
       </div>
+
+      {/* Edit Book Dialog */}
+      <EditBookForm
+        book={editingBook}
+        open={editingBook !== null}
+        onClose={() => setEditingBook(null)}
+        onBookUpdated={handleEditBook}
+      />
     </div>
   );
 };
