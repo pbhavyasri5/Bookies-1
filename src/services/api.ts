@@ -2,7 +2,8 @@ import axios from 'axios';
 import { Book, BookFormData } from '@/types/book';
 import { User } from '@/types/user';
 
-const API_BASE = 'http://localhost:8090/api';
+// Use environment variable for API base URL, fallback to localhost for development
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8090/api';
 
 // Create axios instance with interceptor to add token
 const axiosInstance = axios.create();
