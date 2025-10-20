@@ -19,12 +19,11 @@ public class CorsConfig {
         // Allow credentials (for Authorization header)
         config.setAllowCredentials(true);
         
-        // Allow frontend origins
-        config.setAllowedOrigins(Arrays.asList(
-            "http://localhost:8080",  // Vite frontend
-            "http://localhost:8081",  // Current Vite port
-            "http://localhost:5173",  // Alternate Vite port
-            "http://localhost:3000"   // Alternate React port
+        // Allow frontend origins (localhost for development + Vercel for production)
+        config.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",                    // All localhost ports
+            "https://*.vercel.app",                  // All Vercel deployments
+            "https://free-shelf-buddy-37.vercel.app" // Your specific Vercel domain
         ));
         
         // Allow all headers
@@ -33,8 +32,14 @@ public class CorsConfig {
         // Allow all HTTP methods
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         
+        // Expose Authorization header
+        config.setExposedHeaders(Arrays.asList("Authorization"));
+        
+        // Cache preflight response for 1 hour
+        config.setMaxAge(3600L);
+        
         // Apply CORS configuration to all endpoints
-        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/**", config);
         
         return new CorsFilter(source);
     }
