@@ -1,0 +1,41 @@
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Build output (except the JAR we need)
+target/classes/
+target/generated-sources/
+target/generated-test-sources/
+target/maven-archiver/
+target/maven-status/
+target/surefire-reports/
+target/test-classes/
+target/*.original
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+HELP.md
+
+# Application properties (will use environment variables)
+src/main/resources/application.properties
+src/main/resources/application-dev.properties
